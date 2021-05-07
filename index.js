@@ -3,9 +3,9 @@ const bodyParser = require('body-parser');
 const routes = require('./routes');
 const { sequelize } = require('./database');
 
-sequelize.sync({ force: true }).then(() => {
+sequelize.sync().then(() => {
   console.log("db is synced");
-})
+});
 
 const app = express();
 

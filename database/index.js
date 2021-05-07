@@ -15,5 +15,7 @@ const User = userModel(sequelize);
 
 module.exports = {
   sequelize,
-  User
+  models: {
+    User
+  }
 }
