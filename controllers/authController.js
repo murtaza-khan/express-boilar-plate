@@ -1,18 +1,18 @@
-const { User } = require('../database');
+const { models: { User } } = require('../database');
+const Response = require('../shared/utils/responseHandler');
+const jwt = require('jsonwebtoken');
+const { JWT_SECRET, BCRYPT_SALT_ROUNDS } = require('../config');
+const bcrypt = require('bcrypt');
 
-module.exports = {
+const createUser = async (req, res) => {
 
-  createUser: async (req, res) => {
+  const { email, name, password, confirmPassword } = req.body;
 
-    const { email, name, password, confirmPassword } = req.body;
+  if (password !== confirmPassword) {
+    return Response.InValid(res, 'confirm password do not match the password');
+  }
 
-    if (password !== confirmPassword) {
-      return res.status(400).json({
-        success: false,
-        message: 'confirm password do not match the password',
-      })
-    }
-
+  try {
     const exist = await User.findOne({
       where: {
         email
@@ -20,47 +20,54 @@ module.exports = {
     });
 
     if (exist) {
-      return res.status(409).json({
-        success: false,
-        message: 'User is already registered with the email',
-      })
+      return Response.Conflict(res, 'User is already registered with the email');
     }
-
+    const encryptedPassword = await bcrypt.hash(password, BCRYPT_SALT_ROUNDS);
     const user = await User.create({
       name,
       email,
-      password
+      password: encryptedPassword
     });
 
     if (user) {
-      return res.status(200).json({
-        success: true,
-        message: 'user created successfully',
-        user
-      })
+      return Response.Success(
+        res,
+        'user created successfully',
+        {
+          user
+        }
+      );
     }
-
-    return res.status(400).json({
-      success: false,
-      message: 'there was a problem while creating the user',
-    });
-  },
-
-  login: async (req, res) => {
-    const { email, password } = req.body;
-
-    const user = await User.findOne({ where: { email, password } });
-
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: "Email or password is incorrect",
-      })
-    }
-
-    return res.status(200).json({
-      success: true,
-      message: 'User logged in successfully',
-    });
+  } catch (error) {
+    return Response.InternalServerError(res, 'there was a problem while creating the user', error);
   }
+};
+
+const login = async (req, res) => {
+
+  const { email, password } = req.body;
+
+  const user = await User.findOne({ where: { email } });
+
+  if (!user) {
+    return Response.NotFound(res, 'Email or password is invalid');
+  }
+
+  const isPasswordCorrect = bcrypt.compareSync(password, user.password);
+
+  if (!isPasswordCorrect) {
+    return Response.NotFound(res, 'Email or password is invalid');
+  }
+
+  const token = jwt.sign(JSON.stringify(user), JWT_SECRET);
+
+  return Response.Success(res, 'Logged in successfully', {
+    token,
+    user
+  });
+};
+
+module.exports = {
+  createUser,
+  login
 }
