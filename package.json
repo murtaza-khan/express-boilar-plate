@@ -1,5 +1,5 @@
 {
-  "name": "vky-backend for Node JS",
+  "name": "POC-WorkStation",
   "version": "1.0.0",
   "description": "Simple Node application to learn authentication and CRUD operations using JWT token and database.",
   "main": "index.js",
