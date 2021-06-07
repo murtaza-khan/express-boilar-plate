@@ -2,6 +2,7 @@ const STATUS_CODES = {
   SUCCESS: 200,
   INVALID: 400,
   NOT_FOUND: 404,
+  UNAUTHORIZED: 401,
   SERVER_ERROR: 500,
   CONFLICT: 409
 }
@@ -54,6 +55,18 @@ class Response {
     response.message = message;
     response.statusCode = STATUS_CODES.INVALID;
     return res.status(STATUS_CODES.INVALID).json(response);
+  }
+
+  /**
+   * Will be called in case of invalid request body
+   * @param {Response} res 
+   * @param {String} message 
+   * @returns 
+   */
+  static UnAuthenticated(res, message) {
+    response.message = message;
+    response.statusCode = STATUS_CODES.UNAUTHORIZED;
+    return res.status(STATUS_CODES.UNAUTHORIZED).json(response);
   }
 
   /**

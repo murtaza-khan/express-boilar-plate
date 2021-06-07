@@ -67,6 +67,10 @@ const login = async (req, res) => {
   });
 };
 
+const session = (req, res) => {
+
+}
+
 module.exports = {
   createUser,
   login
